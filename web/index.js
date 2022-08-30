@@ -328,8 +328,8 @@ app.post("/deleteState", urlencodedParser, (req, res) => {
 app.post('/auth', urlencodedParser, (req, res) => {
     if(!req.body)
         return res.sendStatus(400);
-    let users = ['admin', 'editor'];
-    let passes = ['568ad3208973a5f5908ed93b165af0dd', '0bd80d6c6a74bf34ae774eacaf982acf'];
+	const users = JSON.parse(process.env.USERS);
+	const passes = JSON.parse(process.env.PASSES);
 	let username = req.body.username;
 	let password = req.body.password;
 	if (username && password) {

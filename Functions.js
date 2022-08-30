@@ -4,7 +4,16 @@ class Functions
 {
     static selectUser(userId)
     {
-        return db.selectUser(userId);
+        let user = db.selectUser(userId);
+        if (!user)
+            return {
+                id: null,
+                state_id: null,
+                lang_id: null,
+                country_id: null,
+                city_id: null
+            };
+        return user;
     }
 
     static insertUser(userId, langId, stateId)
@@ -12,9 +21,24 @@ class Functions
         db.insertUser(userId, langId, stateId);
     }
 
+    static updateUserState(userId, stateId)
+    {
+        db.updateUserState(userId, stateId);
+    }
+
+    static updateUserCountry(userId, countryId)
+    {
+        db.updateUserCountry(userId, countryId);
+    }
+
+    static updateUserCity(userId, cityId)
+    {
+        db.updateUserCity(userId, cityId);
+    }
+
     static setUserState(userId, state)
     {
-        let stateId = db.selectState(state);
+        let stateId = db.selectState(state).id;
         db.updateUserState(userId, stateId);
     }
 
@@ -30,7 +54,27 @@ class Functions
 
     static selectText(name, langId)
     {
-        return db.selectText(name, langId);
+        return db.selectText(name, langId).value;
+    }
+
+    static selectCountries(langId)
+    {
+        return db.selectCountries(langId);
+    }
+
+    static selectCountryByValue(value, langId)
+    {
+        return db.selectCountryByValue(value, langId);
+    }
+
+    static selectCities(langId, countryId)
+    {
+        return db.selectCities(langId, countryId);
+    }
+
+    static selectCityByValue(value, langId)
+    {
+        return db.selectCityByValue(value, langId);
     }
 }
 module.exports = {

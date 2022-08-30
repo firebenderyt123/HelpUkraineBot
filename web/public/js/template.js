@@ -9,7 +9,7 @@ export default class PageFunctions
             // console.log(key, values[key]);
             if (typeof values[key] === 'string' || values[key] instanceof String) {
                 infoTextBlock += `<div class="col">
-                    <input type="text" class="` + key + ` form-control" placeholder="` + key + `" aria-label="` + key + `" value='` + values[key] + `'>
+                    <input type="text" class="` + key + ` form-control" placeholder="` + key + `" aria-label="` + key + `" value="` + values[key] + `">
                 </div>`;
             } else {
                 infoTextBlock += `<div class="col">

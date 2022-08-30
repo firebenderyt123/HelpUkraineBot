@@ -46,6 +46,20 @@ class Database
         this._con.query(sql, data);
     }
 
+    updateUserCountry(userId, countryId)
+    {
+        let sql = `UPDATE users SET country_id = ? WHERE id = ?`;
+        let data = [countryId, userId];
+        this._con.query(sql, data);
+    }
+
+    updateUserCity(userId, cityId)
+    {
+        let sql = `UPDATE users SET city_id = ? WHERE id = ?`;
+        let data = [cityId, userId];
+        this._con.query(sql, data);
+    }
+
     // Languages
     selectLanguage(language)
     {
@@ -87,7 +101,7 @@ class Database
         let data = [state];
         let result = this._con.query(sql, data);
         if (result.length > 0)
-            return result[0].id;
+            return result[0];
         else
             return null;
     }
@@ -164,6 +178,28 @@ WHERE a.name NOT LIKE 'default'`;
         let result = this._con.query(sql, data);
         if (result.length > 0)
             return result[0];
+        else
+            return null;
+    }
+
+    selectCountryByValue(value, langId)
+    {
+        let sql = 'SELECT * FROM countries WHERE value = ? AND lang_id = ?';
+        let data = [value, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
+    selectCountries(langId)
+    {
+        let sql = `SELECT * FROM countries WHERE lang_id = ? AND name NOT LIKE 'default'`;
+        let data = [langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result;
         else
             return null;
     }
@@ -247,6 +283,28 @@ WHERE a.name NOT LIKE 'default'`;
         let result = this._con.query(sql, data);
         if (result.length > 0)
             return result[0];
+        else
+            return null;
+    }
+
+    selectCityByValue(value, langId)
+    {
+        let sql = 'SELECT * FROM cities WHERE value = ? AND lang_id = ?';
+        let data = [value, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
+    selectCities(langId, countryId)
+    {
+        let sql = `SELECT * FROM cities WHERE lang_id = ? AND country_id = ?`;
+        let data = [langId, countryId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result;
         else
             return null;
     }
