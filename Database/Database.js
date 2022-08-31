@@ -29,13 +29,20 @@ class Database
             return null;
     }
 
-    insertUser(userId, langId, stateId)
+    insertUser(userId, stateId)
     {
-        let sql = `INSERT INTO users(id, lang_id, state_id)
-        VALUES (?, ?, ?)
+        let sql = `INSERT INTO users(id, state_id)
+        VALUES (?, ?)
         ON DUPLICATE KEY UPDATE
             state_id = VALUES(state_id)`;
-        let data = [userId, langId, stateId];
+        let data = [userId, stateId];
+        this._con.query(sql, data);
+    }
+
+    updateUserLang(userId, langId)
+    {
+        let sql = `UPDATE users SET lang_id = ? WHERE id = ?`;
+        let data = [langId, userId];
         this._con.query(sql, data);
     }
 
@@ -61,9 +68,19 @@ class Database
     }
 
     // Languages
+    selectLanguages()
+    {
+        let sql = 'SELECT * FROM languages';
+        let result = this._con.query(sql);
+        if (result.length > 0)
+            return result;
+        else
+            return null;
+    }
+
     selectLanguage(language)
     {
-        let sql = 'SELECT * FROM languages WHERE lang = ?';
+        let sql = 'SELECT * FROM languages WHERE name = ?';
         let data = [language];
         let result = this._con.query(sql, data);
         if (result.length > 0)
@@ -72,14 +89,15 @@ class Database
             return null;
     }
 
-    insertLanguage(language)
+    selectLanguageByValue(value)
     {
-        let sql = `INSERT INTO languages(lang)
-        VALUES (?)
-        ON DUPLICATE KEY UPDATE
-            lang = VALUES(lang)`;
-        let data = [language];
-        this._con.query(sql, data);
+        let sql = 'SELECT * FROM languages WHERE value = ?';
+        let data = [value];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
     }
 
     // States
@@ -140,7 +158,7 @@ FROM (
         a.value as eng_value
     FROM countries as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'eng'
+    WHERE b.name = 'eng'
     GROUP BY a.name
 ) as a
 INNER JOIN (
@@ -149,7 +167,7 @@ INNER JOIN (
         a.value as ukr_value
     FROM countries as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'ukr'
+    WHERE b.name = 'ukr'
     GROUP BY a.name
 ) as b on a.name = b.name
 INNER JOIN (
@@ -158,7 +176,7 @@ INNER JOIN (
         a.value as rus_value
     FROM countries as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'rus'
+    WHERE b.name = 'rus'
     GROUP BY a.name
 ) as c on a.name = c.name
 WHERE a.name NOT LIKE 'default'`;
@@ -243,7 +261,7 @@ FROM (
         a.lang_id
     FROM cities as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'eng'
+    WHERE b.name = 'eng'
     GROUP BY a.name
 ) as a
 INNER JOIN (
@@ -252,7 +270,7 @@ INNER JOIN (
         a.value as ukr_value
     FROM cities as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'ukr'
+    WHERE b.name = 'ukr'
     GROUP BY a.name
 ) as b on a.name = b.name
 INNER JOIN (
@@ -261,7 +279,7 @@ INNER JOIN (
         a.value as rus_value
     FROM cities as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'rus'
+    WHERE b.name = 'rus'
     GROUP BY a.name
 ) as c on a.name = c.name
 INNER JOIN countries as d on a.country_id = d.id
@@ -352,7 +370,7 @@ FROM (
     FROM categories as a
     INNER JOIN languages as b on a.lang_id = b.id
     INNER JOIN categories as c on a.parent_id = c.id
-    WHERE b.lang = 'eng'
+    WHERE b.name = 'eng'
     GROUP BY a.name
 ) as a
 INNER JOIN (
@@ -361,7 +379,7 @@ INNER JOIN (
         a.value as ukr_value
     FROM categories as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'ukr'
+    WHERE b.name = 'ukr'
     GROUP BY a.name
 ) as b on a.name = b.name
 INNER JOIN (
@@ -370,7 +388,7 @@ INNER JOIN (
         a.value as rus_value
     FROM categories as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'rus'
+    WHERE b.name = 'rus'
     GROUP BY a.name
 ) as c on a.name = c.name
 INNER JOIN cities as d on a.city_id = d.id
@@ -435,7 +453,7 @@ FROM (
         a.type as type
     FROM text as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'eng'
+    WHERE b.name = 'eng'
     GROUP BY a.name
 ) as a
 INNER JOIN (
@@ -445,7 +463,7 @@ INNER JOIN (
         a.type as type
     FROM text as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'ukr'
+    WHERE b.name = 'ukr'
     GROUP BY a.name
 ) as b on a.name = b.name
 INNER JOIN (
@@ -455,7 +473,7 @@ INNER JOIN (
         a.type as type
     FROM text as a
     INNER JOIN languages as b on a.lang_id = b.id
-    WHERE b.lang = 'rus'
+    WHERE b.name = 'rus'
     GROUP BY a.name
 ) as c on a.name = c.name`;
         if (filters) {

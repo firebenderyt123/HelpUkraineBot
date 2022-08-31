@@ -16,9 +16,14 @@ class Functions
         return user;
     }
 
-    static insertUser(userId, langId, stateId)
+    static insertUser(userId, stateId)
     {
-        db.insertUser(userId, langId, stateId);
+        db.insertUser(userId, stateId);
+    }
+
+    static updateUserLang(userId, langId)
+    {
+        db.updateUserLang(userId, langId);
     }
 
     static updateUserState(userId, stateId)
@@ -55,6 +60,16 @@ class Functions
     static selectText(name, langId)
     {
         return db.selectText(name, langId).value;
+    }
+
+    static selectLanguages()
+    {
+        return db.selectLanguages();
+    }
+
+    static selectLanguageByValue(value)
+    {
+        return db.selectLanguageByValue(value);
     }
 
     static selectCountries(langId)
