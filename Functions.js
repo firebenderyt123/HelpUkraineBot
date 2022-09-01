@@ -62,6 +62,11 @@ class Functions
         return db.selectText(name, langId).value;
     }
 
+    static selectTextByValue(value)
+    {
+        return db.selectTextByValue(value);
+    }
+
     static selectLanguages()
     {
         return db.selectLanguages();

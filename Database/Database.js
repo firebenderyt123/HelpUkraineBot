@@ -514,6 +514,17 @@ INNER JOIN (
             return null;
     }
 
+    selectTextByValue(value)
+    {
+        let sql = 'SELECT * FROM text WHERE value = ?';
+        let data = [value];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0].name;
+        else
+            return null;
+    }
+
     insertText(name, value, type, langId, id = null)
     {
         if (!id)
