@@ -88,6 +88,25 @@ app.get('/categories', function(req, res) {
     }
 });
 
+app.get('/posts', function(req, res) {
+    if (req.cookies.loggedIn == 'true') {
+        res.render("./template.html", {
+            title: 'Posts',
+            src: '/js/post.js',
+            filters: false,
+            username: req.cookies.username,
+            cols: [
+                'Category',
+                'Eng Lang',
+                'Ukr Lang',
+                'Rus Lang'
+            ]
+        });
+    } else {
+        res.redirect('/login');
+    }
+});
+
 app.get('/text', function(req, res) {
     if (req.cookies.loggedIn == 'true' && req.cookies.username == 'admin') {
         res.render("./template.html", {
@@ -255,6 +274,46 @@ app.post("/deleteCategory", urlencodedParser, (req, res) => {
     return res.sendStatus(200);
 });
 
+// Posts
+app.post("/selectCategoryForPost", urlencodedParser, (req, res) => {
+    if(!req.body)
+        return res.sendStatus(400);
+    let result = db.selectCategoriesForPosts();
+    return res.status(200).send({result: result});
+});
+
+app.post("/selectPost", urlencodedParser, (req, res) => {
+    if(!req.body)
+        return res.sendStatus(400);
+    let filter = req.body.filter;
+    let result = db.selectAllPosts(filter);
+    return res.status(200).send({result: result});
+});
+
+app.post("/insertPost", urlencodedParser, (req, res) => {
+    if(!req.body)
+        return res.sendStatus(400);
+    let engValue = req.body.engValue;
+    let ukrValue = req.body.ukrValue;
+    let rusValue = req.body.rusValue;
+
+    let langId = db.selectLanguage('eng').id;
+    let catId = db.selectCategory(req.body.category, langId).id;
+    db.insertPost(engValue, catId, langId);
+    langId = db.selectLanguage('ukr').id;
+    db.insertPost(ukrValue, catId, langId);
+    langId = db.selectLanguage('rus').id;
+    db.insertPost(rusValue, catId, langId);
+    return res.sendStatus(200);
+});
+
+app.post("/deletePost", urlencodedParser, (req, res) => {
+    if(!req.body)
+        return res.sendStatus(400);
+    let catId = req.body.category_id;
+    db.deletePost(catId);
+    return res.sendStatus(200);
+});
 
 // Text
 app.post("/selectText", urlencodedParser, (req, res) => {

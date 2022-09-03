@@ -28,6 +28,11 @@ function addBlock(country)
         'eng_value': country.eng_value,
         'ukr_value': country.ukr_value,
         'rus_value': country.rus_value
+    }, {
+        'name': false,
+        'eng_value': false,
+        'ukr_value': false,
+        'rus_value': false
     });
 }
 

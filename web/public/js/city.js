@@ -37,6 +37,12 @@ function addBlock(city)
         'ukr_value': city.ukr_value,
         'rus_value': city.rus_value,
         'country': countries
+    }, {
+        'name': false,
+        'eng_value': false,
+        'ukr_value': false,
+        'rus_value': false,
+        'country': false
     });
 }
 

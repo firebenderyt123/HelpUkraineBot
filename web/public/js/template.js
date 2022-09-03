@@ -2,15 +2,18 @@ export default class PageFunctions
 {
     _resultLength = 0;
 
-    addBlock(values)
+    addBlock(values, textAreaCols)
     {
         let infoTextBlock = `<div class="row row-` + this._resultLength + ` mb-1">`;
         for (let key in values) {
             // console.log(key, values[key]);
             if (typeof values[key] === 'string' || values[key] instanceof String) {
-                infoTextBlock += `<div class="col">
-                    <input type="text" class="` + key + ` form-control" placeholder="` + key + `" aria-label="` + key + `" value="` + values[key] + `">
-                </div>`;
+                infoTextBlock += `<div class="col">`;
+                if (!textAreaCols[key])
+                    infoTextBlock += `<input type="text" class="` + key + ` form-control" placeholder="` + key + `" aria-label="` + key + `" value="` + values[key] + `">`;
+                else
+                    infoTextBlock += `<textarea class="` + key + ` form-control" placeholder="` + key + `">` + values[key] + `</textarea>`;
+                infoTextBlock += `</div>`;
             } else {
                 infoTextBlock += `<div class="col">
                 <input list="` + key + '-' + this._resultLength + `" class="` + key + `" value="` + values[key][0] + `" placeholder="` + values[key][0] + `">
@@ -122,6 +125,25 @@ export default class PageFunctions
                 'rusValue': rusValue,
                 'city': city,
                 'parent': parent
+            },
+            success: function(data) {
+                console.log(data, saveBtn);
+                pageFunctions.showSavedText(saveBtn);
+            }
+        });
+    }
+
+    insertPost(url, category, engValue, ukrValue, rusValue, saveBtn)
+    {
+        let pageFunctions = this;
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: {
+                'category': category,
+                'engValue': engValue,
+                'ukrValue': ukrValue,
+                'rusValue': rusValue
             },
             success: function(data) {
                 console.log(data, saveBtn);

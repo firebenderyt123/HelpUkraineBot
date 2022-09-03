@@ -402,6 +402,16 @@ AND a.lang_id = d.lang_id`;
             return null;
     }
 
+    selectCategoriesForPosts()
+    {
+        let sql = 'SELECT DISTINCT name FROM categories WHERE id NOT IN (SELECT DISTINCT parent_id FROM categories WHERE parent_id IS NOT NULL)';
+        let result = this._con.query(sql);
+        if (result.length > 0)
+            return result;
+        else
+            return null;
+    }
+
     selectCategory(category, langId)
     {
         let sql = 'SELECT * FROM categories WHERE name = ? AND lang_id = ?';
@@ -433,6 +443,83 @@ AND a.lang_id = d.lang_id`;
     {
         let sql = `DELETE FROM categories WHERE name = ?`;
         let data = [category];
+        this._con.query(sql, data);
+    }
+
+    // Posts
+    selectAllPosts(filter = null)
+    {
+        let sql = `
+SELECT
+    DISTINCT category,
+    eng_value,
+    ukr_value,
+    rus_value
+FROM (
+    SELECT
+        category_id,
+        a.text as eng_value,
+        c.name as category,
+        a.lang_id
+    FROM posts as a
+    INNER JOIN languages as b on a.lang_id = b.id
+    INNER JOIN categories as c on a.category_id = c.id
+    WHERE b.name = 'eng'
+) as a
+INNER JOIN (
+    SELECT
+    	category_id,
+        a.text as ukr_value
+    FROM posts as a
+    INNER JOIN languages as b on a.lang_id = b.id
+    WHERE b.name = 'ukr'
+) as b on a.category_id = b.category_id
+INNER JOIN (
+    SELECT
+    	category_id,
+        a.text as rus_value
+    FROM posts as a
+    INNER JOIN languages as b on a.lang_id = b.id
+    WHERE b.name = 'rus'
+) as c on a.category_id = c.category_id`;
+        if (filter)
+            sql += ` WHERE a.name LIKE '%` + filter + `%'`;
+        let result = this._con.query(sql);
+        if (result.length > 0)
+            return result;
+        else
+            return null;
+    }
+
+    selectPost(catId, langId)
+    {
+        let sql = 'SELECT * FROM posts WHERE category_id = ? AND lang_id = ?';
+        let data = [catId, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
+    insertPost(text, catId, langId, id = null)
+    {
+        if (!id)
+            id = this._con.query('SELECT max(id) as max FROM posts')[0].max + 1;
+
+        let sql = `INSERT INTO posts(id, text, category_id, lang_id)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            text = VALUES(text),
+            category_id = VALUES(category_id)`;
+        let data = [id, text, catId, langId];
+        this._con.query(sql, data);
+    }
+
+    deletePost(catId)
+    {
+        let sql = `DELETE FROM posts WHERE catId = ?`;
+        let data = [catId];
         this._con.query(sql, data);
     }
 

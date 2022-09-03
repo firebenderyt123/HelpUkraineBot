@@ -22,6 +22,8 @@ function addBlock(state)
 {
     pageFunctions.addBlock({
         'name': state.name
+    }, {
+        'name': false
     });
 }
 

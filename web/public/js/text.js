@@ -46,6 +46,12 @@ function addBlock(text)
         'ukr_value': text.ukr_value,
         'rus_value': text.rus_value,
         'type': text.type
+    }, {
+        'name': false,
+        'eng_value': true,
+        'ukr_value': true,
+        'rus_value': true,
+        'type': false
     });
 }
 

@@ -46,6 +46,13 @@ function addBlock(category)
         'rus_value': category.rus_value,
         'city': cities,
         'parent': parents
+    }, {
+        'name': false,
+        'eng_value': false,
+        'ukr_value': false,
+        'rus_value': false,
+        'city': false,
+        'parent': false
     });
 }
 
