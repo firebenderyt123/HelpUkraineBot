@@ -87,9 +87,9 @@ class Functions
         return db.selectLanguageByValue(value);
     }
 
-    static selectCountries(langId)
+    static selectCountries(langId, from = 0, to = 9)
     {
-        return db.selectCountries(langId);
+        return db.selectCountries(langId, from, to);
     }
 
     static selectCountryByValue(value, langId)
@@ -97,9 +97,14 @@ class Functions
         return db.selectCountryByValue(value, langId);
     }
 
-    static selectCities(langId, countryId)
+    static selectCities(langId, countryId, from = 0, to = 9)
     {
-        return db.selectCities(langId, countryId);
+        return db.selectCities(langId, countryId, from, to);
+    }
+
+    static selectCity(name, langId)
+    {
+        return db.selectCity(name, langId);
     }
 
     static selectCityByValue(value, langId)

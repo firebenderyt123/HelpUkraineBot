@@ -36,16 +36,16 @@ class Bot
         // console.log(userId, langId, stateId, Functions.selectState('main_menu'));
         if (!langId) {
             // select Language
-            this.selectLanguage(ctx, userId);
+            await this.selectLanguage(ctx, userId);
         } else if (countryId && cityId) {
             // Main Menu
-            this.mainMenu(ctx, userId, langId);
+            await this.mainMenu(ctx, userId, langId);
         } else if (!countryId) {
             // select Country
-            this.selectCountry(ctx, userId, langId);
+            await this.selectCountry(ctx, userId, langId);
         } else if (!cityId) {
             // select City
-            this.selectCity(ctx, userId, langId, user.country_id);
+            await this.selectCity(ctx, userId, langId, user.country_id);
         }
     }
 
@@ -65,9 +65,9 @@ class Bot
             // console.log(country, text, langId);
             if (lang) {
                 Functions.updateUserLang(userId, lang.id);
-                this.selectCountry(ctx, userId, lang.id);
+                await this.selectCountry(ctx, userId, lang.id);
             } else {
-                this.selectLanguage(ctx, userId);
+                await this.selectLanguage(ctx, userId);
             }
         } else if (stateId == Functions.selectState('select_country').id) {
             // Select Country
@@ -75,9 +75,10 @@ class Bot
             // console.log(country, text, langId);
             if (country) {
                 Functions.updateUserCountry(userId, country.id);
-                this.selectCity(ctx, userId, langId, country.id);
+                await this.selectCity(ctx, userId, langId, country.id);
             } else {
-                this.selectCountry(ctx, userId, langId);
+                let page = await this.getPage(text, langId);
+                await this.selectCountry(ctx, userId, langId, page);
             }
         } else if (stateId == Functions.selectState('select_city').id) {
             // Select City
@@ -85,9 +86,10 @@ class Bot
             // console.log(country, text, langId);
             if (city) {
                 Functions.updateUserCity(userId, city.id);
-                this.mainMenu(ctx, userId, langId);
+                await this.mainMenu(ctx, userId, langId);
             } else {
-                this.selectCity(ctx, userId, langId, user.country_id);
+                let page = await this.getPage(text, langId);
+                await this.selectCity(ctx, userId, langId, user.country_id, page);
             }
         }
 
@@ -97,108 +99,91 @@ class Bot
             if (!textName) return;
             if (textName == 'categories_btn') {
                 // Information (Category)
-                this.getInfo(ctx, userId, user.city_id, langId);
+                await this.info(ctx, userId, user.city_id, langId);
             } else if (textName == 'chat_btn') {
                 // Chat
-                await ctx.telegram.sendMessage(userId, Functions.selectText('coming_soon', langId), {
-                    "reply_markup": kb.getMainMenu(langId),
-                    "parse_mode": "HTML"
-                });
+                await this.chat(ctx, userId, langId);
             } else if (textName == 'change_language_btn') {
                 // Change Language
-                this.changeLanguage(ctx, userId);
+                await this.changeLanguage(ctx, userId);
             } else if (textName == 'change_country_btn') {
                 // Change Country
-                this.changeCountry(ctx, userId, langId);
+                await this.changeCountry(ctx, userId, langId);
             } else if (textName == 'change_city_btn') {
                 // Change City
-                this.changeCity(ctx, userId, langId, user.country_id);
+                await this.changeCity(ctx, userId, langId, user.country_id);
             }
         }
 
-        if (stateId == Functions.selectState('change_language').id) {
+        else if (stateId == Functions.selectState('change_language').id) {
             // Change Language
             let lang = Functions.selectLanguageByValue(text);
             if (lang) {
                 Functions.updateUserLang(userId, lang.id);
-                this.mainMenu(ctx, userId, lang.id);
+                await this.mainMenu(ctx, userId, lang.id);
             } else {
-                this.changeLanguage(ctx, userId);
+                await this.changeLanguage(ctx, userId);
             }
         } else if (stateId == Functions.selectState('change_country').id) {
             // Change Country
             let country = Functions.selectCountryByValue(text, langId);
             if (country) {
                 Functions.updateUserCountry(userId, country.id);
-                this.mainMenu(ctx, userId, langId);
+                await this.mainMenu(ctx, userId, langId);
             } else {
-                this.changeCountry(ctx, userId, langId);
+                let page = await this.getPage(text, langId);
+                await this.changeCountry(ctx, userId, langId, page);
             }
         } else if (stateId == Functions.selectState('change_city').id) {
             // Change City
             let city = Functions.selectCityByValue(text, langId);
             if (city) {
                 Functions.updateUserCity(userId, city.id);
-                this.mainMenu(ctx, userId, langId);
+                await this.mainMenu(ctx, userId, langId);
             } else {
-                this.changeCity(ctx, userId, langId, user.country_id);
+                let page = await this.getPage(text, langId);
+                await this.changeCity(ctx, userId, langId, user.country_id, page);
             }
         } else if (Functions.selectStateById(stateId).name.includes('choose_category')) {
             // Information (Category)
             let parent = Functions.selectCategoryByValue(text, user.city_id, langId);
+            if (!parent)
+                parent = Functions.selectCategoryByValue(text, Functions.selectCity('default', langId).id, langId);
+            let page = await this.getPage(text, langId);
             if (parent) {
-                this.getInfo(ctx, userId, user.city_id, langId, parent.name);
+                await this.info(ctx, userId, user.city_id, langId, parent.name, page);
             } else {
                 let stateName = Functions.selectStateById(stateId).name;
                 parent = 'default';
                 if (stateName != 'choose_category')
                     parent = stateName.replace('choose_category_', '');
-                this.getInfo(ctx, userId, user.city_id, langId, parent);
+                await this.info(ctx, userId, user.city_id, langId, parent, page);
             }
         }
     }
 
     async selectLanguage(ctx, userId)
     {
-        let langId = Functions.selectLanguage('eng').id;
-        let text = Functions.selectText('select_language', langId);
-        await ctx.telegram.sendMessage(userId, text, {
-            "reply_markup": kb.getLanguageMenu(langId),
+        await ctx.telegram.sendMessage(userId, Functions.selectText('select_language', langId), {
+            "reply_markup": kb.getLanguageMenu(),
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'select_language');
     }
 
-    async selectCountry(ctx, userId, langId)
+    async selectCountry(ctx, userId, langId, page = 1)
     {
-        let countries = Functions.selectCountries(langId);
-        let text = '';
-        for (let i = 0; i < countries.length; i++) {
-            // let flag = countries[i].value.match(/^[^\s]*?(?=\s)/isug);
-            // if (flag)
-            //     flag = flag[0];
-            // let country = countries[i].value.match(/(?<=\s).*?$/isug);
-            // if (country)
-            //     country = country[0];
-            // text += flag + ' <code>' + country + '</code>' + '\n';
-            text += '<code>' + countries[i].value + '</code>' + '\n';
-        }
-        text += '\n' + Functions.selectText('select_country', langId);
-        await ctx.telegram.sendMessage(userId, text, {
+        await ctx.telegram.sendMessage(userId, Functions.selectText('select_country', langId), {
+            "reply_markup": kb.getCountriesMenu(langId, page),
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'select_country');
     }
 
-    async selectCity(ctx, userId, langId, countryId)
+    async selectCity(ctx, userId, langId, countryId, page = 1)
     {
-        let cities = Functions.selectCities(langId, countryId);
-        let text = '';
-        for (let i = 0; i < cities.length; i++) {
-            text += '<code>' + cities[i].value + '</code>' + '\n';
-        }
-        text += '\n' + Functions.selectText('select_city', langId);
-        await ctx.telegram.sendMessage(userId, text, {
+        await ctx.telegram.sendMessage(userId, Functions.selectText('select_city', langId), {
+            "reply_markup": kb.getCitiesMenu(langId, countryId, page),
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'select_city');
@@ -213,12 +198,14 @@ class Bot
         Functions.setUserState(userId, 'main_menu');
     }
 
-    async getInfo(ctx, userId, cityId, langId, parent = 'default')
+    async info(ctx, userId, cityId, langId, parent = 'default', page = 1)
     {
         let categories = Functions.selectCategories(parent, cityId, langId);
+        if (!categories)
+            categories = Functions.selectCategories(parent, Functions.selectCity('default', langId).id, langId);
 
         if (!categories && parent == 'default') {
-            cityId = Functions.selectCity('default').id;
+            cityId = Functions.selectCity('default', langId).id;
             categories = Functions.selectCategories(parent, cityId, langId);
         }
 
@@ -240,9 +227,10 @@ class Bot
         } else {
             let text = '';
             for (let i = 0; i < categories.length; i++)
-                text += '<code>' + categories[i].value + '</code>' + '\n';
+                text += (i + 1) + '. ' + categories[i].value + '\n';
             text += '\n' + Functions.selectText('select_category', langId);
             await ctx.telegram.sendMessage(userId, text, {
+                "reply_markup": kb.getCategoriesMenu(categories, langId, page),
                 "parse_mode": "HTML"
             });
 
@@ -254,43 +242,63 @@ class Bot
         }
     }
 
+    async chat(ctx, userId, langId)
+    {
+        await ctx.telegram.sendMessage(userId, Functions.selectText('coming_soon', langId), {
+            "reply_markup": kb.getMainMenu(langId),
+            "parse_mode": "HTML"
+        });
+    }
+
     async changeLanguage(ctx, userId)
     {
-        let langId = Functions.selectLanguage('eng').id;
-        let text = Functions.selectText('select_language', langId);
-        await ctx.telegram.sendMessage(userId, text, {
-            "reply_markup": kb.getLanguageMenu(langId),
+        await ctx.telegram.sendMessage(userId, Functions.selectText('select_language', langId), {
+            "reply_markup": kb.getLanguageMenu(),
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'change_language');
     }
 
-    async changeCountry(ctx, userId, langId)
+    async changeCountry(ctx, userId, langId, page = 1)
     {
-        let countries = Functions.selectCountries(langId);
-        let text = '';
-        for (let i = 0; i < countries.length; i++) {
-            text += '<code>' + countries[i].value + '</code>' + '\n';
-        }
-        text += '\n' + Functions.selectText('select_country', langId);
-        await ctx.telegram.sendMessage(userId, text, {
+        // let countries = Functions.selectCountries(langId);
+        // let text = '';
+        // for (let i = 0; i < countries.length; i++) {
+        //     text += '<code>' + countries[i].value + '</code>' + '\n';
+        // }
+        // text += '\n' + Functions.selectText('select_country', langId);
+        await ctx.telegram.sendMessage(userId, Functions.selectText('select_country', langId), {
+            "reply_markup": kb.getCountriesMenu(langId, page),
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'change_country');
     }
 
-    async changeCity(ctx, userId, langId, countryId)
+    async changeCity(ctx, userId, langId, countryId, page = 1)
     {
-        let cities = Functions.selectCities(langId, countryId);
-        let text = '';
-        for (let i = 0; i < cities.length; i++) {
-            text += '<code>' + cities[i].value + '</code>' + '\n';
-        }
-        text += '\n' + Functions.selectText('select_city', langId);
-        await ctx.telegram.sendMessage(userId, text, {
+        // let cities = Functions.selectCities(langId, countryId);
+        // let text = '';
+        // for (let i = 0; i < cities.length; i++) {
+        //     text += '<code>' + cities[i].value + '</code>' + '\n';
+        // }
+        // text += '\n' + Functions.selectText('select_city', langId);
+
+        await ctx.telegram.sendMessage(userId, Functions.selectText('select_city', langId), {
+            "reply_markup": kb.getCitiesMenu(langId, countryId, page),
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'change_city');
+    }
+
+    async getPage(text, langId)
+    {
+        let page = 1;
+        let pageName = Functions.selectText('page_btn', langId);
+        if (text.includes(pageName)) {
+            let re = new RegExp('(?<=' + pageName + '\\s).*?(?=\\s|$)', 'gisu');
+            page = text.match(re);
+        }
+        return page;
     }
 }
 module.exports = {

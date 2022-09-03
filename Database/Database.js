@@ -222,10 +222,10 @@ WHERE a.name NOT LIKE 'default'`;
             return null;
     }
 
-    selectCountries(langId)
+    selectCountries(langId, from = 0, to = 9)
     {
-        let sql = `SELECT * FROM countries WHERE lang_id = ? AND name NOT LIKE 'default'`;
-        let data = [langId];
+        let sql = `SELECT * FROM countries WHERE lang_id = ? AND name NOT LIKE 'default' LIMIT ?, ?`;
+        let data = [langId, from, to];
         let result = this._con.query(sql, data);
         if (result.length > 0)
             return result;
@@ -327,10 +327,10 @@ WHERE a.name NOT LIKE 'default'`;
             return null;
     }
 
-    selectCities(langId, countryId)
+    selectCities(langId, countryId, from, to)
     {
-        let sql = `SELECT * FROM cities WHERE lang_id = ? AND country_id = ?`;
-        let data = [langId, countryId];
+        let sql = `SELECT * FROM cities WHERE lang_id = ? AND country_id = ? LIMIT ?, ?`;
+        let data = [langId, countryId, from, to];
         let result = this._con.query(sql, data);
         if (result.length > 0)
             return result;
