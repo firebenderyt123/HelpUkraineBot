@@ -47,14 +47,19 @@ class Functions
         db.updateUserState(userId, stateId);
     }
 
-    static selectLanguage(lang)
+    static selectPost(catId, langId)
     {
-        return db.selectLanguage(lang);
+        return db.selectPost(catId, langId);
     }
 
     static selectState(state)
     {
         return db.selectState(state);
+    }
+
+    static selectStateById(stateId)
+    {
+        return db.selectStateById(stateId);
     }
 
     static selectText(name, langId)
@@ -70,6 +75,11 @@ class Functions
     static selectLanguages()
     {
         return db.selectLanguages();
+    }
+
+    static selectLanguage(lang)
+    {
+        return db.selectLanguage(lang);
     }
 
     static selectLanguageByValue(value)
@@ -95,6 +105,21 @@ class Functions
     static selectCityByValue(value, langId)
     {
         return db.selectCityByValue(value, langId);
+    }
+
+    static selectCategories(parent = 'default', cityId, langId)
+    {
+        return db.selectCategories(parent, cityId, langId);
+    }
+
+    static selectCategory(name, langId)
+    {
+        return db.selectCategory(name, langId);
+    }
+
+    static selectCategoryByValue(value, cityId, langId)
+    {
+        return db.selectCategoryByValue(value, cityId, langId);
     }
 }
 module.exports = {

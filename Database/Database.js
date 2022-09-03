@@ -113,6 +113,17 @@ class Database
             return null;
     }
 
+    selectStateById(stateId)
+    {
+        let sql = 'SELECT * FROM states WHERE id = ?';
+        let data = [stateId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
     selectState(state)
     {
         let sql = 'SELECT * FROM states WHERE name = ?';
@@ -412,10 +423,35 @@ AND a.lang_id = d.lang_id`;
             return null;
     }
 
+    selectCategories(parent = 'default', cityId, langId)
+    {
+        let sql = `
+SELECT DISTINCT a.* FROM categories as a
+INNER JOIN categories as b on a.parent_id = b.id
+WHERE b.name = ? AND a.city_id = ? AND a.lang_id = ?`;
+        let data = [parent, cityId, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result;
+        else
+            return null;
+    }
+
     selectCategory(category, langId)
     {
         let sql = 'SELECT * FROM categories WHERE name = ? AND lang_id = ?';
         let data = [category, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
+    selectCategoryByValue(value, cityId, langId)
+    {
+        let sql = 'SELECT * FROM categories WHERE value = ? AND city_id = ? AND lang_id = ?';
+        let data = [value, cityId, langId];
         let result = this._con.query(sql, data);
         if (result.length > 0)
             return result[0];

@@ -263,6 +263,8 @@ app.post("/insertCategory", urlencodedParser, (req, res) => {
     db.insertCategory(name, ukrValue, cityId, parentId, langId, categoryId);
     langId = db.selectLanguage('rus').id;
     db.insertCategory(name, rusValue, cityId, parentId, langId, categoryId);
+
+	db.insertState('choose_category_' + name);
     return res.sendStatus(200);
 });
 
@@ -271,6 +273,7 @@ app.post("/deleteCategory", urlencodedParser, (req, res) => {
         return res.sendStatus(400);
     let name = req.body.name;
     db.deleteCategory(name);
+	db.deleteState('choose_category_' + name);
     return res.sendStatus(200);
 });
 

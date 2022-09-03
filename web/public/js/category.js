@@ -29,10 +29,11 @@ function addBlock(category)
 {
     let cities = allCities;
     let parents = allCats;
+    cities = pageFunctions.prepend('default', cities);
     if (category.city)
-        cities = pageFunctions.prepend(category.city, allCities);
+        cities = pageFunctions.prepend(category.city, cities);
     else
-        cities = pageFunctions.prepend(cities[0], allCities);
+        cities = pageFunctions.prepend('default', cities);
     if (category.parent)
         parents = pageFunctions.prepend(category.parent, parents);
     else parents = pageFunctions.prepend('default', parents);
@@ -90,6 +91,7 @@ $('.container').on('click', '.btn.save', function() {
     if (name && engValue && parent) {
         pageFunctions.insertCategory("/insertCategory", name, engValue, ukrValue, rusValue, city, parent, saveBtn);
     }
+    allCats.push(name);
 });
 
 $('.container').on('click', '.btn.delete', function() {

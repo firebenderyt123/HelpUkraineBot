@@ -95,7 +95,16 @@ class Bot
             // Main Menu
             let textName = Functions.selectTextByValue(text);
             if (!textName) return;
-            if (textName == 'change_language_btn') {
+            if (textName == 'categories_btn') {
+                // Information (Category)
+                this.getInfo(ctx, userId, user.city_id, langId);
+            } else if (textName == 'chat_btn') {
+                // Chat
+                await ctx.telegram.sendMessage(userId, Functions.selectText('coming_soon', langId), {
+                    "reply_markup": kb.getMainMenu(langId),
+                    "parse_mode": "HTML"
+                });
+            } else if (textName == 'change_language_btn') {
                 // Change Language
                 this.changeLanguage(ctx, userId);
             } else if (textName == 'change_country_btn') {
@@ -107,7 +116,7 @@ class Bot
             }
         }
 
-        else if (stateId == Functions.selectState('change_language').id) {
+        if (stateId == Functions.selectState('change_language').id) {
             // Change Language
             let lang = Functions.selectLanguageByValue(text);
             if (lang) {
@@ -133,6 +142,18 @@ class Bot
                 this.mainMenu(ctx, userId, langId);
             } else {
                 this.changeCity(ctx, userId, langId, user.country_id);
+            }
+        } else if (Functions.selectStateById(stateId).name.includes('choose_category')) {
+            // Information (Category)
+            let parent = Functions.selectCategoryByValue(text, user.city_id, langId);
+            if (parent) {
+                this.getInfo(ctx, userId, user.city_id, langId, parent.name);
+            } else {
+                let stateName = Functions.selectStateById(stateId).name;
+                parent = 'default';
+                if (stateName != 'choose_category')
+                    parent = stateName.replace('choose_category_', '');
+                this.getInfo(ctx, userId, user.city_id, langId, parent);
             }
         }
     }
@@ -190,6 +211,47 @@ class Bot
             "parse_mode": "HTML"
         });
         Functions.setUserState(userId, 'main_menu');
+    }
+
+    async getInfo(ctx, userId, cityId, langId, parent = 'default')
+    {
+        let categories = Functions.selectCategories(parent, cityId, langId);
+
+        if (!categories && parent == 'default') {
+            cityId = Functions.selectCity('default').id;
+            categories = Functions.selectCategories(parent, cityId, langId);
+        }
+
+        if (!categories) {
+            let catId = Functions.selectCategory(parent, langId).id;
+            let post = Functions.selectPost(catId, langId);
+            if (post)
+                await ctx.telegram.sendMessage(userId, post.text, {
+                    "reply_markup": kb.getMainMenu(langId),
+                    "parse_mode": "HTML"
+                });
+            else {
+                await ctx.telegram.sendMessage(userId, Functions.selectText('nothing_found', langId), {
+                    "reply_markup": kb.getMainMenu(langId),
+                    "parse_mode": "HTML"
+                });
+            }
+            Functions.setUserState(userId, 'main_menu');
+        } else {
+            let text = '';
+            for (let i = 0; i < categories.length; i++)
+                text += '<code>' + categories[i].value + '</code>' + '\n';
+            text += '\n' + Functions.selectText('select_category', langId);
+            await ctx.telegram.sendMessage(userId, text, {
+                "parse_mode": "HTML"
+            });
+
+            let cat = 'choose_category';
+            if (parent != 'default')
+                Functions.setUserState(userId, cat + '_' + parent);
+            else
+                Functions.setUserState(userId, cat);
+        }
     }
 
     async changeLanguage(ctx, userId)
