@@ -335,7 +335,6 @@ app.post("/insertText", urlencodedParser, (req, res) => {
     let ukrValue = req.body.ukrValue;
     let rusValue = req.body.rusValue;
     let type = req.body.type;
-
     let textId = null;
     let langId;
     langId = db.selectLanguage('eng').id;

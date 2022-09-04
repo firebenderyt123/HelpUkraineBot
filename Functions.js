@@ -1,4 +1,4 @@
-const { db } = require('./configure');
+const { db, kb } = require('./configure');
 
 class Functions
 {
@@ -82,6 +82,11 @@ class Functions
         return db.selectLanguage(lang);
     }
 
+    static selectLanguageById(langId)
+    {
+        return db.selectLanguageById(langId);
+    }
+
     static selectLanguageByValue(value)
     {
         return db.selectLanguageByValue(value);
@@ -90,6 +95,11 @@ class Functions
     static selectCountries(langId, from = 0, to = 9)
     {
         return db.selectCountries(langId, from, to);
+    }
+
+    static selectCountryById(countryId, langId)
+    {
+        return db.selectCountryById(countryId, langId);
     }
 
     static selectCountryByValue(value, langId)
@@ -105,6 +115,11 @@ class Functions
     static selectCity(name, langId)
     {
         return db.selectCity(name, langId);
+    }
+
+    static selectCityById(cityId, langId)
+    {
+        return db.selectCityById(cityId, langId);
     }
 
     static selectCityByValue(value, langId)
@@ -126,7 +141,18 @@ class Functions
     {
         return db.selectCategoryByValue(value, cityId, langId);
     }
+
+    // Ads
+    selectOfferById(offerId)
+    {
+        return db.selectOfferById(offerId);
+    }
+
+    insertOffer(description, price, photo_id, address, userId, date, id = null)
+    {
+        return db.insertOffer(description, price, photo_id, address, userId, date, id);
+    }
 }
 module.exports = {
-    Functions
+    Functions, kb
 };

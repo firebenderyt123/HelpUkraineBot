@@ -2,8 +2,10 @@ const { Telegraf } = require('telegraf');
 
 const { Keyboards } = require('./Keyboards');
 const { Functions } = require('./Functions');
+const { OfferGenerator } = require('./OfferGenerator');
 
 const kb = new Keyboards();
+const og = new OfferGenerator();
 
 class Bot
 {
@@ -55,11 +57,11 @@ class Bot
         let text = ctx.message.text;
         let user = Functions.selectUser(userId);
         let langId = user.lang_id;
-        let stateId = user.state_id;
+        let state = Functions.selectStateById(user.state_id);
         // console.log(text);
 
         // First auth
-        if (stateId == Functions.selectState('select_language').id) {
+        if (state.name == 'select_language') {
             // Select Language
             let lang = Functions.selectLanguageByValue(text);
             // console.log(country, text, langId);
@@ -69,7 +71,7 @@ class Bot
             } else {
                 await this.selectLanguage(ctx, userId);
             }
-        } else if (stateId == Functions.selectState('select_country').id) {
+        } else if (state.name == 'select_country') {
             // Select Country
             let country = Functions.selectCountryByValue(text, langId);
             // console.log(country, text, langId);
@@ -80,7 +82,7 @@ class Bot
                 let page = await this.getPage(text, langId);
                 await this.selectCountry(ctx, userId, langId, page);
             }
-        } else if (stateId == Functions.selectState('select_city').id) {
+        } else if (state.name == 'select_city') {
             // Select City
             let city = Functions.selectCityByValue(text, langId);
             // console.log(country, text, langId);
@@ -93,17 +95,27 @@ class Bot
             }
         }
 
-        else if (stateId == Functions.selectState('main_menu').id) {
+        else if (state.name == 'main_menu') {
             // Main Menu
             let textName = Functions.selectTextByValue(text);
             if (!textName) return;
-            if (textName == 'categories_btn') {
+            if (textName == 'profile_btn') {
+                // Profile
+                await this.profile(ctx, user, userId, langId);
+            } else if (textName == 'categories_btn') {
                 // Information (Category)
                 await this.info(ctx, userId, user.city_id, langId);
             } else if (textName == 'chat_btn') {
                 // Chat
                 await this.chat(ctx, userId, langId);
-            } else if (textName == 'change_language_btn') {
+            }
+
+            else if (textName == 'create_offer_btn') {
+                // Create Offer
+                await this.createOffer(ctx, userId, langId);
+            }
+
+            else if (textName == 'change_language_btn') {
                 // Change Language
                 await this.changeLanguage(ctx, userId);
             } else if (textName == 'change_country_btn') {
@@ -115,7 +127,12 @@ class Bot
             }
         }
 
-        else if (stateId == Functions.selectState('change_language').id) {
+        // Create Offer
+        else if (state.name == 'offer_description') {
+            // Offer Description
+        }
+
+        else if (state.name == 'change_language') {
             // Change Language
             let lang = Functions.selectLanguageByValue(text);
             if (lang) {
@@ -124,17 +141,18 @@ class Bot
             } else {
                 await this.changeLanguage(ctx, userId);
             }
-        } else if (stateId == Functions.selectState('change_country').id) {
+        } else if (state.name == 'change_country') {
             // Change Country
             let country = Functions.selectCountryByValue(text, langId);
             if (country) {
+                Functions.updateUserCity(userId, null);
                 Functions.updateUserCountry(userId, country.id);
-                await this.mainMenu(ctx, userId, langId);
+                await this.changeCity(ctx, userId, langId, country.id);
             } else {
                 let page = await this.getPage(text, langId);
                 await this.changeCountry(ctx, userId, langId, page);
             }
-        } else if (stateId == Functions.selectState('change_city').id) {
+        } else if (state.name == 'change_city') {
             // Change City
             let city = Functions.selectCityByValue(text, langId);
             if (city) {
@@ -144,7 +162,7 @@ class Bot
                 let page = await this.getPage(text, langId);
                 await this.changeCity(ctx, userId, langId, user.country_id, page);
             }
-        } else if (Functions.selectStateById(stateId).name.includes('choose_category')) {
+        } else if (state.name.includes('choose_category')) {
             // Information (Category)
             let parent = Functions.selectCategoryByValue(text, user.city_id, langId);
             if (!parent)
@@ -164,6 +182,7 @@ class Bot
 
     async selectLanguage(ctx, userId)
     {
+        let langId = Functions.selectLanguage('eng').id;
         await ctx.telegram.sendMessage(userId, Functions.selectText('select_language', langId), {
             "reply_markup": kb.getLanguageMenu(),
             "parse_mode": "HTML"
@@ -192,6 +211,19 @@ class Bot
     async mainMenu(ctx, userId, langId)
     {
         await ctx.telegram.sendMessage(userId, Functions.selectText('welcome_text', langId), {
+            "reply_markup": kb.getMainMenu(langId),
+            "parse_mode": "HTML"
+        });
+        Functions.setUserState(userId, 'main_menu');
+    }
+
+    async profile(ctx, user, userId, langId)
+    {
+        let json = JSON.parse(Functions.selectText('profile_info', langId));
+        let text = '<b>' + json[0] + '</b>' + Functions.selectCountryById(user.country_id, langId).value + '\n';
+        text += '<b>' + json[1] + '</b>' + Functions.selectCityById(user.city_id, langId).value + '\n';
+        text += '<b>' + json[2] + '</b>' + Functions.selectLanguageById(langId).value;
+        await ctx.telegram.sendMessage(userId, text, {
             "reply_markup": kb.getMainMenu(langId),
             "parse_mode": "HTML"
         });
@@ -248,6 +280,11 @@ class Bot
             "reply_markup": kb.getMainMenu(langId),
             "parse_mode": "HTML"
         });
+    }
+
+    async createOffer(ctx, userId, langId)
+    {
+        await og.inputDescription(ctx, userId, langId);
     }
 
     async changeLanguage(ctx, userId)

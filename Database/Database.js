@@ -89,6 +89,17 @@ class Database
             return null;
     }
 
+    selectLanguageById(langId)
+    {
+        let sql = 'SELECT * FROM languages WHERE id = ?';
+        let data = [langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
     selectLanguageByValue(value)
     {
         let sql = 'SELECT * FROM languages WHERE value = ?';
@@ -211,6 +222,17 @@ WHERE a.name NOT LIKE 'default'`;
             return null;
     }
 
+    selectCountryById(countryId, langId)
+    {
+        let sql = 'SELECT * FROM countries WHERE id = ? AND lang_id = ?';
+        let data = [countryId, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
     selectCountryByValue(value, langId)
     {
         let sql = 'SELECT * FROM countries WHERE value = ? AND lang_id = ?';
@@ -236,7 +258,7 @@ WHERE a.name NOT LIKE 'default'`;
     insertCountry(name, value, langId, id = null)
     {
         if (!id)
-            id = this._con.query('SELECT count(DISTINCT name) as count FROM countries')[0].count + 1;
+            id = this._con.query('SELECT MAX(id) as max FROM countries')[0].max + 1;
 
         let sql = `INSERT INTO countries(id, name, value, lang_id)
         VALUES (?, ?, ?, ?)
@@ -316,6 +338,17 @@ WHERE a.name NOT LIKE 'default'`;
             return null;
     }
 
+    selectCityById(cityId, langId)
+    {
+        let sql = 'SELECT * FROM cities WHERE id = ? AND lang_id = ?';
+        let data = [cityId, langId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
     selectCityByValue(value, langId)
     {
         let sql = 'SELECT * FROM cities WHERE value = ? AND lang_id = ?';
@@ -341,7 +374,7 @@ WHERE a.name NOT LIKE 'default'`;
     insertCity(name, value, countryId, langId, id = null)
     {
         if (!id)
-            id = this._con.query('SELECT count(DISTINCT name) as count FROM cities')[0].count + 1;
+            id = this._con.query('SELECT MAX(id) as max FROM cities')[0].max + 1;
 
         let sql = `INSERT INTO cities(id, name, value, country_id, lang_id)
         VALUES (?, ?, ?, ?, ?)
@@ -462,7 +495,7 @@ WHERE b.name = ? AND a.city_id = ? AND a.lang_id = ?`;
     insertCategory(name, value, cityId, parentId, langId, id = null)
     {
         if (!id)
-            id = this._con.query('SELECT count(DISTINCT name) as count FROM categories')[0].count + 1;
+            id = this._con.query('SELECT MAX(id) as max FROM categories')[0].max + 1;
 
         let sql = `INSERT INTO categories(id, name, value, city_id, parent_id, lang_id)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -541,7 +574,7 @@ INNER JOIN (
     insertPost(text, catId, langId, id = null)
     {
         if (!id)
-            id = this._con.query('SELECT max(id) as max FROM posts')[0].max + 1;
+            id = this._con.query('SELECT MAX(id) as max FROM posts')[0].max + 1;
 
         let sql = `INSERT INTO posts(id, text, category_id, lang_id)
         VALUES (?, ?, ?, ?)
@@ -651,7 +684,7 @@ INNER JOIN (
     insertText(name, value, type, langId, id = null)
     {
         if (!id)
-            id = this._con.query('SELECT count(DISTINCT name) as count FROM text')[0].count + 1;
+            id = this._con.query('SELECT MAX(id) as max FROM text')[0].max + 1;
 
         let sql = `INSERT INTO text(id, name, value, type, lang_id)
         VALUES (?, ?, ?, ?, ?)
@@ -666,6 +699,36 @@ INNER JOIN (
     {
         let sql = `DELETE FROM text WHERE name = ?`;
         let data = [name];
+        this._con.query(sql, data);
+    }
+
+    // Ads (Offers)
+    selectOfferById(offerId)
+    {
+        let sql = `SELECT * FROM ads WHERE id = ?`;
+        let data = [offerId];
+        let result = this._con.query(sql, data);
+        if (result.length > 0)
+            return result[0];
+        else
+            return null;
+    }
+
+    insertOffer(description, price, photo_id, address, userId, date, id = null)
+    {
+        if (!id)
+            id = this._con.query('SELECT MAX(id) as max FROM ads')[0].max + 1;
+
+        let sql = `INSERT INTO ads(id, description, price, photo_id, address, user_id, date)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        let data = [id, description, price, photo_id, address, userId, date];
+        this._con.query(sql, data);
+    }
+
+    deleteOffer(offerId)
+    {
+        let sql = `DELETE FROM ads WHERE id = ?`;
+        let data = [offerId];
         this._con.query(sql, data);
     }
 

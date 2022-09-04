@@ -8,8 +8,12 @@ class Keyboards
             "resize_keyboard": true,
             "keyboard": [
                 [
+                    Functions.selectText('profile_btn', langId),
                     Functions.selectText('categories_btn', langId),
                     Functions.selectText('chat_btn', langId)
+                ],
+                [
+                    Functions.selectText('create_offer_btn', langId)
                 ],
                 [
                     Functions.selectText('change_language_btn', langId),
@@ -71,6 +75,47 @@ class Keyboards
         };
     }
 
+    getPriceKeyboard(langId)
+    {
+        return {
+            "resize_keyboard": true,
+            "one_time_keyboard": true,
+            "keyboard": [
+                [
+                    Functions.selectText('1_btn', langId),
+                    Functions.selectText('2_btn', langId),
+                    Functions.selectText('5_btn', langId)
+                ],
+                [
+                    Functions.selectText('10_btn', langId),
+                    Functions.selectText('20_btn', langId),
+                    Functions.selectText('50_btn', langId)
+                ],
+                [
+                    Functions.selectText('100_btn', langId),
+                    Functions.selectText('200_btn', langId),
+                    Functions.selectText('500_btn', langId)
+                ],
+                [
+                    Functions.selectText('free_btn', langId)
+                ]
+            ]
+        };
+    }
+
+    getPhotoKeyboard(langId)
+    {
+        return {
+            "resize_keyboard": true,
+            "one_time_keyboard": true,
+            "keyboard": [
+                [
+                    Functions.selectText('no_photo_btn', langId)
+                ]
+            ]
+        };
+    }
+
     getFromTo(page)
     {
         let from;
@@ -79,8 +124,8 @@ class Keyboards
             from = 0;
             to = 10;
         } else if (page >= 2) {
-            from = (page - 1) * 8 - (page - 2);
-            to = from + 9;
+            from = (page - 1) * 9;
+            to = from + 10;
         }
         return [from, to];
     }
@@ -103,25 +148,14 @@ class Keyboards
 
         if (page == 1) {
             if (data.length == 10)
-                kb[2][2] = nextBtn;
+                kb[3][0] = nextBtn;
         }
         else if (page >= 2) {
-            if (data.length < 7)
+            if (data.length < 10)
                 kb.push([prevBtn]);
-            else if (data.length == 7) {
-                kb[2].push(kb[2][0]);
-                kb[2][0] = prevBtn;
-            }
-            else if (data.length == 8) {
-                kb[2][2] = kb[2][1];
-                kb[2][1] = kb[2][0];
-                kb[2][0] = prevBtn;
-            }
-            else if (data.length == 9) {
-                let tmp = kb[2][0];
-                kb[2][0] = prevBtn;
-                kb[2][1] = tmp;
-                kb[2][2] = nextBtn;
+            else if (data.length == 10) {
+                kb[3][0] = prevBtn;
+                kb[3].push(nextBtn);
             }
         }
         return kb;
